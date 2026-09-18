@@ -1,98 +1,97 @@
 # SPL Compiler (Simple Procedural Language)
 
-**Compiler Design Laboratory Project - Phase 1 (25%-30% Milestone)**  
+**Compiler Design Laboratory Project — Phase 1 (25%-30% Milestone)**  
 **Student:** Devaguptapu V S Sai Ramesh (Reg No: 24BKT0117)  
 **Supervisor:** Dr. Ranjith Kumar S  
 
 ---
 
 ## Project Overview
-This repository contains the Phase 1 implementation of a compiler for **SPL (Simple Procedural Language)**, a statically-typed procedural language with C-like syntax designed for educational compiler pipelines.
 
-Phase 1 completes the **Language Specification + Lexical Analyzer Prototype + Lexical Diagnostics + Initial Symbol Table Stub**, fulfilling the 25%-30% requirement of the course curriculum.
+This repository contains the Phase 1 implementation of a compiler for **SPL (Simple Procedural Language)** — a statically-typed procedural programming language with C-like syntax developed for educational compiler engineering.
+
+Phase 1 establishes the front-end foundation:
+- **Language Specification & Lexical Rules** for keywords, identifiers, literals, operators, and delimiters.
+- **Deterministic Lexical Analyzer (Scanner)** with single-character lookahead.
+- **Lexical Error Diagnostics** featuring exact line/column tracking and visual caret (`^`) indicators.
+- **Initial Symbol Table Stub** cataloging user-defined identifiers, scope, declaration line, and inferred types.
 
 ---
 
-## Quick Start (Demonstration for Faculty)
+## Key Implementation Highlights
 
-### 1. Run Official SPL Program (Section 8.4)
+- **Manual Character Scanner (DFA):** Implemented using pointer progression (`advance()`, `peek()`, `match()`) rather than regular expressions, ensuring deterministic performance and exact column tracking.
+- **Lookahead Disambiguation:** Resolves multi-character operators (e.g., `=` vs `==`, `+` vs `+=`, `<` vs `<=`) using 1-character lookahead.
+- **Comment Stripping & Line Tracking:** Handles both single-line (`//`) and multi-line (`/* ... */`) comments while accurately tracking line numbers and unterminated comment errors.
+- **Detailed Diagnostics:** Reports clear error messages with source line previews and caret pointers for unrecognized characters, unterminated strings, and malformed numbers.
+- **Symbol Table Stub:** Parses the token stream to populate identifier names, types, scope (`global`), and roles (`variable` / `function`) for subsequent semantic phases.
+
+---
+
+## Repository Structure
+
+```
+compiler/
+├── src/
+│   ├── tokens.py         # Token definitions, TokenType enum, keywords
+│   ├── lexer.py          # Character-by-character scanner and tokenizer
+│   ├── errors.py         # LexicalError class with visual caret formatting
+│   └── symbol_table.py   # Symbol table stub and SymbolEntry model
+├── samples/
+│   ├── sample.spl              # Standard SPL sample program
+│   ├── counter.spl             # Loop and arithmetic prototype sample
+│   ├── error_invalid_char.spl  # Lexical error: invalid character (@)
+│   ├── error_unterminated_str.spl # Lexical error: unclosed string
+│   └── error_malformed_num.spl # Lexical error: malformed number (25abc)
+├── tests/
+│   └── test_phase1.py    # Automated test suite (T1 - T7)
+├── main.py               # CLI entry point and pipeline runner
+└── README.md             # Project documentation
+```
+
+---
+
+## Getting Started
+
+### Prerequisites
+- Python 3.8 or higher (no external third-party libraries required)
+
+### Running the Compiler on a Sample Program
 ```bash
 python main.py samples/sample.spl
 ```
-*Outputs source preview, tabular token stream, proposal Section 12.3 token format, initial symbol table stub, and token statistics.*
+This runs lexical analysis on the input file and displays:
+1. Source code preview with line numbers
+2. Structured token stream table (Type, Lexeme, Value, Location)
+3. Proposal token stream representation
+4. Populated Phase 1 Symbol Table
+5. Token distribution metrics
 
-### 2. Run Prototype Example (Section 12.3)
-```bash
-python main.py samples/counter.spl
-```
-*Verifies exact token stream parity against Section 12.3 of the submitted proposal.*
-
-### 3. Demonstrate Lexical Error Handling & Position Pointer (Section 15)
+### Demonstrating Lexical Error Handling
 ```bash
 python main.py samples/error_invalid_char.spl
 python main.py samples/error_unterminated_str.spl
 python main.py samples/error_malformed_num.spl
 ```
-*Demonstrates visual caret (`^`) pointing to the offending character with exact line and column numbers.*
+Each demonstrates visual error pinpointing with exact line and column numbers.
 
-### 4. Run Automated Test Matrix (Section 12.4, T1 through T7)
+### Running Automated Test Suite
+To verify the complete Phase 1 test matrix (T1 to T7):
 ```bash
 python main.py --test
 ```
-or
-```bash
-python tests/test_phase1.py
-```
+*(or run `python tests/test_phase1.py`)*
 
 ---
 
-## Project Architecture
+## Phase 1 Test Matrix Coverage
 
-```
-d:/Projects/compiler/
-|-- src/
-|   |-- tokens.py
-|   |-- lexer.py
-|   |-- errors.py
-|   `-- symbol_table.py
-|-- samples/
-|   |-- sample.spl
-|   |-- counter.spl
-|   |-- error_invalid_char.spl
-|   |-- error_unterminated_str.spl
-|   `-- error_malformed_num.spl
-|-- tests/
-|   `-- test_phase1.py
-|-- main.py
-`-- README.md
-```
-
----
-
-## Phase 1 Test Matrix Coverage (Section 12.4)
-
-| Test Case | Description | Test Verification | Status |
+| Test Case | Description | Verification Target | Status |
 |---|---|---|---|
-| **T1** | Normal declaration | Correct token types for `int count = 25;` | **PASS** |
-| **T2** | Expression with operators | Identification of `+`, `*`, `<=`, etc. | **PASS** |
-| **T3** | String / Character literal | Preserves quotes and unescaped values | **PASS** |
-| **T4** | Comments and whitespace | Comments ignored, line/col tracking preserved | **PASS** |
-| **T5** | Invalid symbol | Catches `@`, `$`, etc. with line/col pointer | **PASS** |
-| **T6** | Malformed number | Catches invalid digits / trailing letters | **PASS** |
-| **T7** | Unrecognized word | Disambiguates keywords vs identifiers | **PASS** |
-
----
-
-## Viva Q&A Cheat Sheet for Faculty
-
-### Q1: "Did you use regular expressions or a manual scanner?"
-> **Answer:** We implemented a **manual character-by-character scanner (deterministic finite state machine)** with `peek()`, `peek_next()`, `advance()`, and `match()` methods in [lexer.py](file:///d:/Projects/compiler/src/lexer.py). This avoids regex backtracking overhead and gives fine-grained control over multi-line comments and exact column counting.
-
-### Q2: "How does the lexer distinguish between `=` and `==`, or `+` and `+=`?"
-> **Answer:** Using a 1-character lookahead (`peek()` / `match()`). For example, when encountering `=`, the lexer calls `match('=')`. If the next character is `=`, it consumes it and emits `TokenType.EQ` (`==`); otherwise it emits `TokenType.ASSIGN` (`=`).
-
-### Q3: "How does the lexer handle comments and track line numbers?"
-> **Answer:** Single-line comments (`//`) discard characters until a newline `\n` is reached. Multi-line comments (`/* ... */`) discard characters until the closing `*/` delimiter, while actively incrementing line counters on each newline encountered. If EOF is reached before `*/`, a lexical error is raised.
-
-### Q4: "What is the role of the Symbol Table stub in Phase 1?"
-> **Answer:** The Symbol Table stub in [symbol_table.py](file:///d:/Projects/compiler/src/symbol_table.py) scans the token stream to catalog all unique identifiers, their initial scope (`global`), declaration line, and role (`variable` vs `function`), laying the groundwork for Phase 2/3 semantic and type-checking passes.
+| **T1** | Normal Declaration | Correct tokenization of type, identifier, assignment, literal, delimiter | **PASS** |
+| **T2** | Expressions & Operators | Disambiguation of arithmetic, relational, and assignment operators | **PASS** |
+| **T3** | String & Character Literals | Escape preservation and string/char token value extraction | **PASS** |
+| **T4** | Comments & Newlines | Single-line and multi-line comments ignored; line counters preserved | **PASS** |
+| **T5** | Invalid Symbol Detection | Rejection of unauthorized characters (`@`, `$`) with caret pointer | **PASS** |
+| **T6** | Malformed Numbers | Rejection of invalid numeric formats (e.g., `25abc`) | **PASS** |
+| **T7** | Keyword vs Identifier | Accurate distinction between language keywords and user identifiers | **PASS** |
