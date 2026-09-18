@@ -1,0 +1,2 @@
+string greeting = "Hello, SPL World;
+print(greeting);

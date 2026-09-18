@@ -1,0 +1,9 @@
+int score = 72;
+float average = 72.5;
+bool passed = score >= 50;
+
+if (passed) {
+    print(score);
+} else {
+    print(0);
+}
